@@ -291,8 +291,8 @@ func executetion():
 	var final_bone_index : int = fabrik_joint.size() - 1
 	var final_joint_node : FABRIK_JOINT = fabrik_joint[final_bone_index]
 	
-	if !final_joint_node.use_target_rotation:
-		final_joint_node.bone_node.look_at(target_node.global_position)
+	#if !final_joint_node.use_target_rotation:
+		#final_joint_node.bone_node.look_at(target_node.global_position)
 	
 	var final_joint_angle = final_joint_node.bone_node.global_rotation
 	
@@ -353,6 +353,7 @@ func chain_forward():
 		var current_bone_trans : Transform2D = fabrik_transfroms[i]
 		
 		var length = fabrik_joint[i].bone_node.bone_length / next_bone_trans.origin.distance_to(current_bone_trans.origin)
+		
 		next_bone_trans.origin = current_bone_trans.origin.linear_interpolate(next_bone_trans.origin,length)
 		fabrik_transfroms[i+1] = next_bone_trans
 
