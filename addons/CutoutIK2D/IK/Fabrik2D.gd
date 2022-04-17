@@ -1,6 +1,5 @@
 tool
 extends Node2D
-class_name Fabrik2D
 
 var path_to_target : NodePath 
 var path_to_char : NodePath
@@ -16,7 +15,7 @@ var constraint_mode : bool = true
 
 class FABRIK_JOINT:
 	var path_to_bone : NodePath
-	var bone_node : Sprite_bone
+	var bone_node : SpriteBone
 	var magnet_position : Vector2 = Vector2.ZERO
 	var use_target_rotation : bool
 	
@@ -409,7 +408,7 @@ func chain_clamp_angle(p_angle : float,p_min_bound : float,p_max_bound : float,p
 			p_angle = p_max_bound
 	return p_angle
 
-func draw_angle_const(bone : Sprite_bone,min_bound : float,max_bound : float,const_enable : bool,const_in_local : bool,const_inverted : bool):
+func draw_angle_const(bone : SpriteBone,min_bound : float,max_bound : float,const_enable : bool,const_in_local : bool,const_inverted : bool):
 	if !bone:
 		return 0
 	

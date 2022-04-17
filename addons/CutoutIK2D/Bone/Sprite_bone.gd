@@ -1,6 +1,6 @@
 tool
 extends Sprite
-class_name Sprite_bone
+class_name SpriteBone,"res://addons/CutoutIK2D/Bone/Spritebone.png"
 
 var bone_rid : RID
 
