@@ -1,5 +1,6 @@
 tool
 extends Node2D
+class_name Fabrik2D, "res://addons/CutoutIK2D/IK/Fabrik.png"
 
 var path_to_target : NodePath 
 var path_to_char : NodePath
@@ -10,6 +11,7 @@ var target_transform : Transform2D
 var chain_tolerance : float = 2.0
 var chain_max_iterations : int = 10
 
+var enable_exec : bool = true 
 var enable_editor : bool = false
 var constraint_mode : bool = true
 
@@ -32,7 +34,11 @@ var local_position : Array = []
 var num : int = 0
 
 func _set(property, value):
-	if property == "Enable_On_Editor":
+	if property == "Enable_In_Game":
+		enable_exec = value
+		property_list_changed_notify()
+		return true
+	elif property == "Enable_On_Editor":
 		enable_editor = value
 		property_list_changed_notify()
 		return true
@@ -125,7 +131,9 @@ func _set(property, value):
 		return true
 
 func _get(property):
-	if property == "Enable_On_Editor":
+	if property == "Enable_In_Game":
+		return enable_exec
+	elif property == "Enable_On_Editor":
 		return enable_editor
 	elif property == "FABRIK/target":
 		return path_to_target
@@ -163,6 +171,11 @@ func _get_property_list():
 			'type' : TYPE_NIL,
 			'hint' : PROPERTY_HINT_NONE,
 			'usage' : PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_SCRIPT_VARIABLE}
+	list.append(dict)
+	dict = {'name' : "Enable_In_Game",
+			'type' : TYPE_BOOL,
+			'hint' : PROPERTY_HINT_NONE,
+			'usage' : PROPERTY_USAGE_DEFAULT}
 	list.append(dict)
 	dict = {'name' : "Enable_On_Editor",
 			'type' : TYPE_BOOL,
@@ -253,8 +266,9 @@ func _physics_process(delta):
 	if enable_editor == true:
 		if Engine.editor_hint:
 			executetion()
-	if not Engine.editor_hint:
-		executetion()
+	elif enable_exec == true:
+		if not Engine.editor_hint:
+			executetion()
 	update()
 
 func executetion():
@@ -314,7 +328,6 @@ func executetion():
 		chain_iterations += 1
 		if chain_iterations >= chain_max_iterations:
 			break
-
 
 func chain_backward():
 	var final_bone_index : int = fabrik_joint.size() - 1
@@ -378,7 +391,6 @@ func apply_all_joint_node():
 		
 		fabrik_joint[i].bone_node.position = local_position[i]
 		fabrik_transfroms[i] = fabrik_joint[i].bone_node.global_transform
-
 
 func chain_clamp_angle(p_angle : float,p_min_bound : float,p_max_bound : float,p_invert : bool):
 	if p_angle < 0:
