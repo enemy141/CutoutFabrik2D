@@ -293,20 +293,19 @@ func executetion():
 		if current_joint.bone_node.bone_length == 0:
 			assert(false,"Cannot execute boneIK2D for joint: " +  str(i) + " cause no bone length")
 			return 
-		fabrik_transfroms[i] = current_joint.bone_node.global_transform
 		local_position[i] = current_joint.bone_node.position
+		fabrik_transfroms[i] = current_joint.bone_node.global_transform
 	
 	target_transform = target_node.global_transform
 	
 	for i in all_of_joint:
 		if i != fabrik_joint.size() - 1:
-			local_position[i + 1] = Vector2(fabrik_joint[i].bone_node.bone_length,fabrik_joint[i + 1].bone_node.position.y)
+			var current_joint : FABRIK_JOINT = fabrik_joint[i]
+			var direction = Vector2(cos(current_joint.bone_node.bone_angle),sin(current_joint.bone_node.bone_angle))
+			local_position[i + 1] = direction * current_joint.bone_node.bone_length
 	
 	var final_bone_index : int = fabrik_joint.size() - 1
 	var final_joint_node : FABRIK_JOINT = fabrik_joint[final_bone_index]
-	
-	#if !final_joint_node.use_target_rotation:
-		#final_joint_node.bone_node.look_at(target_node.global_position)
 	
 	var final_joint_angle = final_joint_node.bone_node.global_rotation
 	
@@ -390,6 +389,7 @@ func apply_all_joint_node():
 			fabrik_joint[i] = current_joint
 		
 		fabrik_joint[i].bone_node.position = local_position[i]
+		fabrik_joint[i].bone_node.rotate(-fabrik_joint[i].bone_node.bone_angle)
 		fabrik_transfroms[i] = fabrik_joint[i].bone_node.global_transform
 
 func chain_clamp_angle(p_angle : float,p_min_bound : float,p_max_bound : float,p_invert : bool):

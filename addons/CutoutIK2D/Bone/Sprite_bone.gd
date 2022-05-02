@@ -7,8 +7,9 @@ var bone_rid : RID
 var draw_in_editor : bool = false
 var auto_length_cal : bool = false
 
-var bone_length = -1.0
-var line_color = Color(1.0, 1.0, 0.0, 0.4)
+var bone_length : float = -1.0
+var bone_angle : float = 0
+var line_color : Color = Color(1.0, 1.0, 0.0, 0.4)
 
 var original_trans : Transform2D = transform
 
@@ -21,6 +22,11 @@ func _set(property, value):
 	elif property == "BONE/Auto_length":
 		auto_length_cal = bool(value)
 		auto_cale_length()
+		update_item()
+		property_list_changed_notify()
+		return true
+	elif property == "BONE/Angle":
+		bone_angle = deg2rad(float(value))
 		update_item()
 		property_list_changed_notify()
 		return true
@@ -49,6 +55,8 @@ func _get(property):
 		return bone_length
 	elif property == "BONE/Auto_length":
 		return auto_length_cal
+	elif property == "BONE/Angle":
+		return rad2deg(bone_angle)
 	elif property == "BONE/Draw_line_in_editor":
 		return draw_in_editor
 	elif property == "BONE/LineColor":
@@ -75,6 +83,12 @@ func _get_property_list():
 	dict = {'name' : "BONE/Length",
 			'type' : TYPE_REAL,
 			'hint' : PROPERTY_HINT_NONE,
+			'usage' : PROPERTY_USAGE_DEFAULT}
+	list.append(dict)
+	dict = {'name' : "BONE/Angle",
+			'type' : TYPE_REAL,
+			'hint' : PROPERTY_HINT_RANGE,
+			'hint_string' : "-360, 360",
 			'usage' : PROPERTY_USAGE_DEFAULT}
 	list.append(dict)
 	dict = {'name' : "BONE/LineColor",
@@ -106,6 +120,7 @@ func auto_cale_length():
 		if child_node.is_class(self.get_class()):
 			bone_length = (global_transform.origin.distance_to(child_node.global_transform.origin))
 			length_set = true
+			break
 		
 	if length_set == false:
 		bone_length = -1.0
@@ -116,10 +131,11 @@ func _draw():
 			if bone_rid != null:
 				VisualServer.canvas_item_clear(bone_rid)
 			
-			var bone_direction = Vector2(cos(0),sin(0))
+			var bone_direction : Vector2 = Vector2(cos(bone_angle),sin(bone_angle))
 			var shape_points = [4]
 			var shape_color = [4]
-			var bone_d_perp = Vector2(sin(0),cos(0))
+			var bone_d_perp = Vector2(sin(bone_angle),cos(bone_angle))
+			
 			
 			for _i in range(4):
 				shape_color.append(line_color)
