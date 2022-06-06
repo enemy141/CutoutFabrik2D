@@ -156,8 +156,7 @@ func _draw():
 	if Engine.editor_hint:
 		if draw_in_editor:
 			if bone_rid != null:
-				#VisualServer.canvas_item_clear(bone_rid)
-				pass
+				VisualServer.canvas_item_clear(bone_rid)
 			
 			var bone_direction : Vector2 = Vector2(cos(bone_angle),sin(bone_angle))
 			var shape_points = [4]
