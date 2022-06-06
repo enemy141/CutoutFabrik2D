@@ -3,8 +3,6 @@ extends Node2D
 class_name Fabrik2D, "res://addons/CutoutIK2D/IK/Fabrik.png"
 
 var path_to_target : NodePath 
-var path_to_char : NodePath
-
 var target_node : Node2D 
 var target_transform : Transform2D
 
@@ -15,9 +13,12 @@ var enable_exec : bool = true
 var enable_editor : bool = false
 var constraint_mode : bool = true
 
+var constraint_color : Color = Color(1.0, 1.0, 0.0, 0.4)
+
 class FABRIK_JOINT:
 	var path_to_bone : NodePath
 	var bone_node : SpriteBone
+	var additional_rotation : float = 0
 	var magnet_position : Vector2 = Vector2.ZERO
 	var use_target_rotation : bool
 	
@@ -38,24 +39,34 @@ func _set(property, value):
 		enable_exec = value
 		property_list_changed_notify()
 		return true
+		
 	elif property == "Enable_On_Editor":
 		enable_editor = value
 		property_list_changed_notify()
 		return true
+		
 	elif property == "FABRIK/target":
 		path_to_target = value
 		if path_to_target != null:
 			target_node = get_node_or_null(path_to_target)
 			property_list_changed_notify()
 		return true
+		
 	elif property == "FABRIK/Draw_Constraint":
 		constraint_mode = value
 		property_list_changed_notify()
 		return true
+		
+	elif property == "FABRIK/Constraint_LineColor":
+		constraint_color = value
+		property_list_changed_notify()
+		return true
+		
 	elif property == "FABRIK/Max_Iterations":
 		chain_max_iterations = value
 		property_list_changed_notify()
 		return true
+		
 	elif property == "FABRIK/joint_count":
 		num = value
 		
@@ -81,6 +92,7 @@ func _set(property, value):
 		
 		property_list_changed_notify()
 		return true
+		
 	elif property.begins_with("FABRIK/joint/"):
 		var fabrik_data = property.split("/")
 		var joint_index = fabrik_data[2].to_int()
@@ -98,36 +110,55 @@ func _set(property, value):
 				current_joint.bone_node = get_node_or_null(current_joint.path_to_bone)
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
 		elif fabrik_data[3] == "magnet_position":
-			current_joint.magnet_position = value
+			var current_value = value
+			current_joint.magnet_position = current_value
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
+		elif fabrik_data[3] == "additional_rotation":
+			var current_value = value
+			current_joint.additional_rotation = deg2rad(float(current_value))
+			fabrik_joint[joint_index] = current_joint
+			property_list_changed_notify()
+			
 		elif fabrik_data[3] == "use_target_rotation":
-			current_joint.use_target_rotation = value
+			var current_value = value
+			current_joint.use_target_rotation = current_value
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
 		elif fabrik_data[3] == "enable_constraint":
-			current_joint.enable_constraint = value
+			var current_value = value
+			current_joint.enable_constraint = current_value
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
 		elif fabrik_data[3] == "angle_min":
 			var current_value = value
 			current_joint.constraint_angle_min = deg2rad(float(current_value))
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
 		elif fabrik_data[3] == "angle_max":
 			var current_value = value
 			current_joint.constraint_angle_max = deg2rad(float(current_value))
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
 		elif fabrik_data[3] == "constraint_invert":
-			current_joint.constraint_angle_invert = value
+			var current_value = value
+			current_joint.constraint_angle_invert = current_value
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
 		elif fabrik_data[3] == "constraint_in_localspace":
-			current_joint.constraint_in_localspace= value
+			var current_value = value
+			current_joint.constraint_in_localspace = current_value
 			fabrik_joint[joint_index] = current_joint
 			property_list_changed_notify()
+			
 		return true
 
 func _get(property):
@@ -139,6 +170,8 @@ func _get(property):
 		return path_to_target
 	elif property == "FABRIK/Draw_Constraint":
 		return constraint_mode
+	elif property == "FABRIK/Constraint_LineColor":
+		return constraint_color
 	elif property == "FABRIK/Max_Iterations":
 		return chain_max_iterations
 	elif property == "FABRIK/joint_count":
@@ -146,10 +179,13 @@ func _get(property):
 	elif property.begins_with("FABRIK/joint/"):
 		var fabrik_data = property.split("/")
 		var joint_index = fabrik_data[2].to_int()
+		
 		if fabrik_data[3] == "bone_node":
 			return fabrik_joint[joint_index].path_to_bone
 		elif fabrik_data[3] == "magnet_position":
 			return fabrik_joint[joint_index].magnet_position
+		elif fabrik_data[3] == "additional_rotation":
+			return rad2deg(fabrik_joint[joint_index].additional_rotation)
 		elif fabrik_data[3] == "enable_constraint":
 			return fabrik_joint[joint_index].enable_constraint
 		elif fabrik_data[3] == "angle_min":
@@ -192,6 +228,11 @@ func _get_property_list():
 			'hint' : PROPERTY_HINT_NONE,
 			'usage' : PROPERTY_USAGE_DEFAULT}
 	list.append(dict)
+	dict = {'name' : "FABRIK/Constraint_LineColor",
+			'type' : TYPE_COLOR,
+			'hint' : PROPERTY_HINT_NONE,
+			'usage' : PROPERTY_USAGE_DEFAULT}
+	list.append(dict)
 	dict = {'name' : "FABRIK/Max_Iterations",
 			'type' : TYPE_INT,
 			'hint' : PROPERTY_HINT_NONE,
@@ -213,6 +254,11 @@ func _get_property_list():
 				'hint' : PROPERTY_HINT_NONE,
 				'usage' : PROPERTY_USAGE_DEFAULT}
 		list.append(dict)
+		dict = {'name' : string + str(i) + '/additional_rotation',
+				'type' : TYPE_REAL,
+				'hint' : PROPERTY_HINT_NONE,
+				'usage' : PROPERTY_USAGE_DEFAULT}
+		list.append(dict)
 		dict = {'name' : string + str(i) + '/enable_constraint',
 				'type' : TYPE_BOOL,
 				'hint' : PROPERTY_HINT_NONE,
@@ -222,13 +268,13 @@ func _get_property_list():
 			dict = {'name' : string + str(i) + '/angle_min',
 				'type' : TYPE_REAL,
 				'hint' : PROPERTY_HINT_RANGE,
-				'hint_string' : "-360, 360",
+				'hint_string' : "-360, 360, 0.01",
 				'usage' : PROPERTY_USAGE_DEFAULT}
 			list.append(dict)
 			dict = {'name' : string + str(i) + '/angle_max',
 				'type' : TYPE_REAL,
 				'hint' : PROPERTY_HINT_RANGE,
-				'hint_string' : "-360, 360",
+				'hint_string' : "-360, 360, 0.01",
 				'usage' : PROPERTY_USAGE_DEFAULT}
 			list.append(dict)
 			dict = {'name' : string + str(i) + '/constraint_invert',
@@ -293,6 +339,7 @@ func executetion():
 		if current_joint.bone_node.bone_length == 0:
 			assert(false,"Cannot execute boneIK2D for joint: " +  str(i) + " cause no bone length")
 			return 
+		
 		local_position[i] = current_joint.bone_node.position
 		fabrik_transfroms[i] = current_joint.bone_node.global_transform
 	
@@ -306,8 +353,7 @@ func executetion():
 	
 	var final_bone_index : int = fabrik_joint.size() - 1
 	var final_joint_node : FABRIK_JOINT = fabrik_joint[final_bone_index]
-	
-	var final_joint_angle = final_joint_node.bone_node.global_rotation
+	var final_joint_angle = final_joint_node.bone_node.global_rotation + fabrik_joint[final_bone_index].bone_node.bone_angle
 	
 	if(fabrik_joint[final_bone_index].use_target_rotation):
 		final_joint_angle = target_transform.get_rotation()
@@ -336,7 +382,11 @@ func chain_backward():
 		fabrik_joint[final_bone_index].bone_node.look_at(target_node.global_position)
 		final_joint_trans = fabrik_joint[final_bone_index].bone_node.global_transform
 	
-	var final_joint_angle  = final_joint_trans.get_rotation()
+	var final_joint_angle  = final_joint_trans.get_rotation() 
+	
+	if fabrik_joint[final_bone_index].use_target_rotation:
+		final_joint_angle = final_joint_trans.get_rotation() + fabrik_joint[final_bone_index].bone_node.bone_angle
+	
 	var final_bone_angle_vector = Vector2(cos(final_joint_angle),sin(final_joint_angle))
 	
 	if final_bone_index != 0:
@@ -375,7 +425,7 @@ func apply_all_joint_node():
 		
 		if (i == fabrik_joint.size() - 1):
 			if(fabrik_joint[i].use_target_rotation):
-				fabrik_joint[i].bone_node.rotation = target_node.rotation
+				fabrik_joint[i].bone_node.rotation = (target_node.rotation)
 			else:
 				fabrik_joint[i].bone_node.look_at(target_transform.origin)
 		else:
@@ -389,6 +439,7 @@ func apply_all_joint_node():
 			fabrik_joint[i] = current_joint
 		
 		fabrik_joint[i].bone_node.position = local_position[i]
+		fabrik_joint[i].bone_node.rotate(fabrik_joint[i].additional_rotation)
 		fabrik_joint[i].bone_node.rotate(-fabrik_joint[i].bone_node.bone_angle)
 		fabrik_transfroms[i] = fabrik_joint[i].bone_node.global_transform
 
@@ -425,7 +476,7 @@ func draw_angle_const(bone : SpriteBone,min_bound : float,max_bound : float,cons
 	if !bone:
 		return 0
 	
-	var ik_color =  Color(1.0, 1.0, 0.0, 0.4)
+	var ik_color =  constraint_color
 	
 	var arc_angle_min = min_bound
 	var arc_angle_max = max_bound

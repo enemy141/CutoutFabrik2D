@@ -6,6 +6,7 @@ var bone_rid : RID
 
 var draw_in_editor : bool = false
 var auto_length_cal : bool = false
+var auto_angle_cal : bool = false
 
 var bone_length : float = -1.0
 var bone_angle : float = 0
@@ -21,7 +22,7 @@ func _set(property, value):
 		return true
 	elif property == "BONE/Auto_length":
 		auto_length_cal = bool(value)
-		auto_cale_length()
+		auto_cal_length()
 		update_item()
 		property_list_changed_notify()
 		return true
@@ -30,6 +31,11 @@ func _set(property, value):
 		update_item()
 		property_list_changed_notify()
 		return true
+	elif property == "BONE/Auto_angle":
+		auto_angle_cal = bool(value)
+		auto_cal_angle()
+		update_item()
+		property_list_changed_notify()
 	elif property == "BONE/Draw_line_in_editor":
 		draw_in_editor = value
 		if bone_rid != null:
@@ -55,6 +61,8 @@ func _get(property):
 		return bone_length
 	elif property == "BONE/Auto_length":
 		return auto_length_cal
+	elif property == "BONE/Auto_angle":
+		return auto_angle_cal
 	elif property == "BONE/Angle":
 		return rad2deg(bone_angle)
 	elif property == "BONE/Draw_line_in_editor":
@@ -76,6 +84,11 @@ func _get_property_list():
 			'usage' : PROPERTY_USAGE_DEFAULT}
 	list.append(dict)
 	dict = {'name' : "BONE/Auto_length",
+			'type' : TYPE_BOOL,
+			'hint' : PROPERTY_HINT_NONE,
+			'usage' : PROPERTY_USAGE_DEFAULT}
+	list.append(dict)
+	dict = {'name' : "BONE/Auto_angle",
 			'type' : TYPE_BOOL,
 			'hint' : PROPERTY_HINT_NONE,
 			'usage' : PROPERTY_USAGE_DEFAULT}
@@ -106,13 +119,13 @@ func _notification(what):
 
 func _ready():
 	if auto_length_cal:
-		auto_cale_length()
+		auto_cal_length()
 
 func update_item():
 	if Engine.editor_hint:
 		update()
 
-func auto_cale_length():
+func auto_cal_length():
 	var length_set = false
 	
 	for child in get_children():
@@ -124,6 +137,20 @@ func auto_cale_length():
 		
 	if length_set == false:
 		bone_length = -1.0
+
+func auto_cal_angle():
+	var angle_set = false
+	
+	for child in get_children():
+		var child_node = child
+		if child_node.is_class(self.get_class()):
+			var child_relative_pos = child_node.transform.origin.normalized()
+			bone_angle = atan2(child_relative_pos.y,child_relative_pos.x)
+			angle_set = true
+			break
+	
+	if angle_set == false:
+		bone_angle = 0
 
 func _draw():
 	if Engine.editor_hint:
