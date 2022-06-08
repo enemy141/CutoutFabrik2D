@@ -44,7 +44,7 @@ func _set(property, value):
 		enable_editor = value
 		property_list_changed_notify()
 		return true
-		
+	
 	elif property == "FABRIK/target":
 		path_to_target = value
 		if path_to_target != null:
@@ -307,12 +307,14 @@ func _ready():
 	if path_to_target != null:
 		target_node = get_node_or_null(path_to_target)
 
+#need to fix target_rotation
+
 # warning-ignore:unused_argument
 func _physics_process(delta):
 	if enable_editor == true:
 		if Engine.editor_hint:
 			executetion()
-	elif enable_exec == true:
+	if enable_exec == true:
 		if not Engine.editor_hint:
 			executetion()
 	update()
@@ -355,13 +357,12 @@ func executetion():
 	var final_joint_node : FABRIK_JOINT = fabrik_joint[final_bone_index]
 	var final_joint_angle = final_joint_node.bone_node.global_rotation + fabrik_joint[final_bone_index].bone_node.bone_angle
 	
-	if(fabrik_joint[final_bone_index].use_target_rotation):
-		final_joint_angle = target_transform.get_rotation()
+	final_joint_angle = target_transform.get_rotation()
 	
 	var final_joint_direction = Vector2(cos(final_joint_angle),sin(final_joint_angle))
 	var final_joint_length = fabrik_joint[final_bone_index].bone_node.bone_length
 	var target_distance = (final_joint_node.bone_node.global_position + 
-		(final_joint_direction * final_joint_length)).distance_to(target_node.global_position)
+		(final_joint_direction * final_joint_length)).distance_to(target_transform.origin)
 	
 	var chain_iterations : int = 0
 	
@@ -379,7 +380,7 @@ func chain_backward():
 	var final_joint_trans : Transform2D = fabrik_transfroms[final_bone_index]
 	
 	if !fabrik_joint[final_bone_index].use_target_rotation:
-		fabrik_joint[final_bone_index].bone_node.look_at(target_node.global_position)
+		fabrik_joint[final_bone_index].bone_node.look_at(target_transform.origin)
 		final_joint_trans = fabrik_joint[final_bone_index].bone_node.global_transform
 	
 	var final_joint_angle  = final_joint_trans.get_rotation() 
@@ -516,3 +517,5 @@ func draw_angle_const(bone : SpriteBone,min_bound : float,max_bound : float,cons
 		draw_arc(Vector2.ZERO,bone.bone_length,0,PI * 2.0,32,ik_color,1.0)
 		draw_line(Vector2.ZERO,Vector2.UP * bone.bone_length,ik_color,1.0)
 
+func  world_transform_relative_to(world_trans : Transform2D , node2d : Node2D):
+	return node2d.global_transform.affine_inverse() * world_trans

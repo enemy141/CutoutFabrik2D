@@ -145,11 +145,6 @@ func _get_property_list():
 		list.append(dict)
 	return list
 
-func _notification(what):
-	if what == NOTIFICATION_EXIT_TREE:
-		if bone_rid != null:
-			VisualServer.free_rid(bone_rid)
-
 func _ready():
 	if auto_length_cal:
 		auto_cal_length()
