@@ -388,8 +388,8 @@ func chain_backward():
 	
 	var final_joint_angle  = final_joint_trans.get_rotation() 
 	
-	if fabrik_joint[final_bone_index].use_target_rotation:
-		final_joint_angle = final_joint_trans.get_rotation() + fabrik_joint[final_bone_index].bone_node.bone_angle
+	#if fabrik_joint[final_bone_index].use_target_rotation:
+		#final_joint_angle = final_joint_trans.get_rotation() + fabrik_joint[final_bone_index].bone_node.bone_angle
 	
 	var final_bone_angle_vector = Vector2(cos(final_joint_angle),sin(final_joint_angle))
 	
@@ -442,7 +442,7 @@ func apply_all_joint_node():
 			fabrik_joint[i] = current_joint
 		
 		fabrik_joint[i].bone_node.position = local_position[i]
-		fabrik_joint[i].bone_node.rotation = (fabrik_joint[i].bone_node.rotation - fabrik_joint[i].bone_node.bone_angle)
+		fabrik_joint[i].bone_node.rotate(-fabrik_joint[i].bone_node.bone_angle)
 		fabrik_transfroms[i] = fabrik_joint[i].bone_node.global_transform
 
 func chain_clamp_angle(p_angle : float,p_min_bound : float,p_max_bound : float,p_invert : bool):
