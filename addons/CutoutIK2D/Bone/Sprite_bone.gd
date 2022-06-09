@@ -158,7 +158,6 @@ func _process(delta):
 	if enable_scale:
 			scale = const_scale
 
-
 func update_item():
 	if Engine.editor_hint:
 		update()

@@ -307,8 +307,6 @@ func _ready():
 	if path_to_target != null:
 		target_node = get_node_or_null(path_to_target)
 
-#need to fix target_rotation
-
 # warning-ignore:unused_argument
 func _physics_process(delta):
 	if enable_editor == true:
@@ -357,55 +355,71 @@ func executetion():
 	var final_joint_node : FABRIK_JOINT = fabrik_joint[final_bone_index]
 	var final_joint_angle = final_joint_node.bone_node.global_rotation + fabrik_joint[final_bone_index].bone_node.bone_angle
 	
-	final_joint_angle = target_transform.get_rotation()
+	if final_joint_node.use_target_rotation:
+		final_joint_angle = target_transform.get_rotation()
 	
 	var final_joint_direction = Vector2(cos(final_joint_angle),sin(final_joint_angle))
 	var final_joint_length = fabrik_joint[final_bone_index].bone_node.bone_length
 	var target_distance = (final_joint_node.bone_node.global_position + 
-		(final_joint_direction * final_joint_length)).distance_to(target_transform.origin)
+		(final_joint_direction * final_joint_length)).distance_to(target_node.global_position)
 	
 	var chain_iterations : int = 0
 	
 	while (target_distance > chain_tolerance):
 		chain_backward()
 		chain_forward()
+		final_joint_angle = final_joint_node.bone_node.global_rotation
+		
+		if final_joint_node.use_target_rotation:
+			final_joint_angle = target_transform.get_rotation()
+		
+		final_joint_direction = Vector2(cos(final_joint_angle),sin(final_joint_angle))
+		target_distance = (final_joint_node.bone_node.global_position + 
+		(final_joint_direction * final_joint_length)).distance_to(target_node.global_position)
+		
 		apply_all_joint_node()
 		
 		chain_iterations += 1
 		if chain_iterations >= chain_max_iterations:
 			break
+	
+	
 
 func chain_backward():
 	var final_bone_index : int = fabrik_joint.size() - 1
+	var final_bone_joint : FABRIK_JOINT = fabrik_joint[final_bone_index]
 	var final_joint_trans : Transform2D = fabrik_transfroms[final_bone_index]
-	
-	if !fabrik_joint[final_bone_index].use_target_rotation:
-		fabrik_joint[final_bone_index].bone_node.look_at(target_transform.origin)
-		final_joint_trans = fabrik_joint[final_bone_index].bone_node.global_transform
-	
-	var final_joint_angle  = final_joint_trans.get_rotation() 
-	
-	if fabrik_joint[final_bone_index].use_target_rotation:
-		final_joint_angle = final_joint_trans.get_rotation() + fabrik_joint[final_bone_index].bone_node.bone_angle
-	
-	var final_bone_angle_vector = Vector2(cos(final_joint_angle),sin(final_joint_angle))
 	
 	if final_bone_index != 0:
 		final_joint_trans.origin = final_joint_trans.origin + fabrik_joint[final_bone_index].magnet_position
 	
-	final_joint_trans.origin = target_transform.origin - (final_bone_angle_vector * fabrik_joint[final_bone_index].bone_node.bone_length)
-	fabrik_transfroms[final_bone_index] = final_joint_trans
+	fabrik_joint[final_bone_index].bone_node.look_at(target_transform.origin)
+	if !fabrik_joint[final_bone_index].use_target_rotation:
+		final_joint_trans = fabrik_joint[final_bone_index].bone_node.global_transform
 	
+	var final_joint_angle  = final_joint_trans.get_rotation()
+	 
+	if fabrik_joint[final_bone_index].use_target_rotation:
+		final_joint_angle = final_joint_trans.get_rotation() + fabrik_joint[final_bone_index].bone_node.bone_angle
+	
+	var final_bone_angle_vector = Vector2(cos(final_joint_angle),sin(final_joint_angle))
+	var final_bone_length = final_bone_joint .bone_node.bone_length * min(final_bone_joint .bone_node.global_scale.x,final_bone_joint.bone_node.global_scale.y)
+	final_joint_trans.origin = target_transform.origin - (final_bone_angle_vector * final_bone_length)
+	
+	fabrik_transfroms[final_bone_index] = final_joint_trans
 	
 	for i in range(final_bone_index,0,-1):
 		
 		var previous_bone_trans : Transform2D = fabrik_transfroms[i]
 		var current_bone_trans : Transform2D = fabrik_transfroms[i - 1]
+		var current_bone_joint: FABRIK_JOINT = fabrik_joint[i - 1]
 		
 		if i !=0:
 			current_bone_trans.origin = current_bone_trans.origin + fabrik_joint[i - 1].magnet_position
 		
-		var length = fabrik_joint[i-1].bone_node.bone_length / current_bone_trans.origin.distance_to(previous_bone_trans.origin)
+		var current_bone_length = current_bone_joint.bone_node.bone_length * min(current_bone_joint.bone_node.global_scale.x,current_bone_joint.bone_node.global_scale.y)
+		var length = current_bone_length / current_bone_trans.origin.distance_to(previous_bone_trans.origin)
+		
 		current_bone_trans.origin = previous_bone_trans.origin.linear_interpolate(current_bone_trans.origin,length)
 		fabrik_transfroms[i-1] = current_bone_trans
 
@@ -414,11 +428,14 @@ func chain_forward():
 		
 		var next_bone_trans : Transform2D = fabrik_transfroms[i + 1]
 		var current_bone_trans : Transform2D = fabrik_transfroms[i]
+		var current_bone_joint: FABRIK_JOINT = fabrik_joint[i]
 		
-		var length = fabrik_joint[i].bone_node.bone_length / next_bone_trans.origin.distance_to(current_bone_trans.origin)
+		var current_bone_length = current_bone_joint.bone_node.bone_length * min(current_bone_joint.bone_node.global_scale.x,current_bone_joint.bone_node.global_scale.y)
+		var length = current_bone_length / next_bone_trans.origin.distance_to(current_bone_trans.origin)
 		
 		next_bone_trans.origin = current_bone_trans.origin.linear_interpolate(next_bone_trans.origin,length)
 		fabrik_transfroms[i+1] = next_bone_trans
+
 
 func apply_all_joint_node():
 	for i in fabrik_joint.size():
@@ -440,8 +457,8 @@ func apply_all_joint_node():
 			fabrik_joint[i] = current_joint
 		
 		fabrik_joint[i].bone_node.position = local_position[i]
-		fabrik_joint[i].bone_node.rotate(fabrik_joint[i].additional_rotation)
-		fabrik_joint[i].bone_node.rotate(-fabrik_joint[i].bone_node.bone_angle)
+		#fabrik_joint[i].bone_node.rotate(fabrik_joint[i].additional_rotation)
+		#fabrik_joint[i].bone_node.rotate(fabrik_joint[i].bone_node.rotation - fabrik_joint[i].bone_node.bone_angle)
 		fabrik_transfroms[i] = fabrik_joint[i].bone_node.global_transform
 
 func chain_clamp_angle(p_angle : float,p_min_bound : float,p_max_bound : float,p_invert : bool):
