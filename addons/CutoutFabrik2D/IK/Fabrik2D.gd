@@ -388,9 +388,6 @@ func chain_backward():
 	
 	var final_joint_angle  = final_joint_trans.get_rotation() 
 	
-	#if fabrik_joint[final_bone_index].use_target_rotation:
-		#final_joint_angle = final_joint_trans.get_rotation() + fabrik_joint[final_bone_index].bone_node.bone_angle
-	
 	var final_bone_angle_vector = Vector2(cos(final_joint_angle),sin(final_joint_angle))
 	
 	
