@@ -1,6 +1,6 @@
 tool
 extends Node2D
-class_name Fabrik2D, "res://addons/CutoutIK2D/IK/Fabrik.png"
+class_name Fabrik2D, "res://addons/CutoutFabrik2D/IK/Fabrik.png"
 
 var path_to_target : NodePath 
 var target_node : Node2D 
