@@ -1,2 +1,2 @@
 # CutoutIK
-IK system for cutout animation
+a simple Fabrik2D design for cutout animation
