@@ -357,7 +357,8 @@ func executetion():
 	var final_joint_node : FABRIK_JOINT = fabrik_joint[final_bone_index]
 	var final_joint_angle = final_joint_node.bone_node.global_rotation + fabrik_joint[final_bone_index].bone_node.bone_angle
 	
-	final_joint_angle = target_transform.get_rotation()
+	if final_joint_node.use_target_rotation:
+		final_joint_angle = target_node.rotation
 	
 	var final_joint_direction = Vector2(cos(final_joint_angle),sin(final_joint_angle))
 	var final_joint_length = fabrik_joint[final_bone_index].bone_node.bone_length
@@ -382,6 +383,8 @@ func chain_backward():
 	if !fabrik_joint[final_bone_index].use_target_rotation:
 		fabrik_joint[final_bone_index].bone_node.look_at(target_transform.origin)
 		final_joint_trans = fabrik_joint[final_bone_index].bone_node.global_transform
+	else:
+		fabrik_joint[final_bone_index].bone_node.rotation = (target_node.rotation)
 	
 	var final_joint_angle  = final_joint_trans.get_rotation() 
 	
@@ -516,6 +519,3 @@ func draw_angle_const(bone : SpriteBone,min_bound : float,max_bound : float,cons
 		draw_set_transform(get_global_transform().affine_inverse().xform(bone.global_position),0,Vector2.ONE)
 		draw_arc(Vector2.ZERO,bone.bone_length,0,PI * 2.0,32,ik_color,1.0)
 		draw_line(Vector2.ZERO,Vector2.UP * bone.bone_length,ik_color,1.0)
-
-func  world_transform_relative_to(world_trans : Transform2D , node2d : Node2D):
-	return node2d.global_transform.affine_inverse() * world_trans
